@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌌 インフラ探検家 クエストボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030712;--panel:#0d1427;--border:#1e3a5f;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#f59e0b;
+  --success:#10b981;--danger:#ef4444;--text:#e2e8f0;--muted:#64748b;
+  --glow:0 0 20px rgba(0,212,255,.3);--glow-s:0 0 30px rgba(16,185,129,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.9) 0%,transparent 100%),
+    radial-gradient(1px 1px at 70% 80%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(2px 2px at 45% 50%,rgba(0,212,255,.4) 0%,transparent 100%),
+    radial-gradient(2px 2px at 75% 30%,rgba(124,58,237,.4) 0%,transparent 100%);}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:20px 16px 100px;}
+
+/* ヘッダー */
+.hdr{text-align:center;padding:24px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.hdr-title{font-family:'Orbitron',monospace;font-size:clamp(16px,5vw,26px);font-weight:900;color:var(--accent);text-shadow:var(--glow);letter-spacing:.05em;margin-bottom:4px;}
+.hdr-sub{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.hdr-acts{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.hdr-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;transition:all .2s;font-family:'Noto Sans JP',sans-serif;}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent);}
+.hdr-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+/* メインナビ */
+.main-nav{display:flex;gap:6px;margin-bottom:20px;}
+.nav-btn{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Noto Sans JP',sans-serif;white-space:nowrap;}
+.nav-btn.active{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;box-shadow:0 0 15px rgba(0,212,255,.3);}
+
+/* XP */
+.xp-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.xp-lbl{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;}
+.xp-val{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent3);font-weight:700;}
+.xp-bg{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(0,212,255,.5);}
+.stats{display:flex;gap:8px;margin-top:12px;}
+.stat{flex:1;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 4px;}
+.stat-n{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--accent);}
+.stat-l{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* クエストタブ */
+.tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:8px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--muted);transition:all .2s;white-space:nowrap;}
+.tab.active{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;}
+.sec-hdr{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* クエストカード */
+.qcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 14px 14px 18px;margin-bottom:8px;position:relative;overflow:hidden;transition:all .3s;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:3px 0 0 3px;}
+.qcard.done{opacity:.55;border-color:var(--success);}
+.qcard.done::before{background:var(--success);}
+.qcard.urgent::before{background:var(--danger);box-shadow:0 0 10px rgba(239,68,68,.5);}
+.qcard.daily::before{background:linear-gradient(180deg,var(--accent3),#f97316);}
+.qhdr{display:flex;align-items:flex-start;gap:10px;}
+.chk{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);background:var(--bg);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px;}
+.chk:hover{border-color:var(--accent);}
+.chk.on{background:var(--success);border-color:var(--success);box-shadow:var(--glow-s);}
+.chk.on::after{content:'✓';color:#fff;font-size:14px;font-weight:bold;}
+.qcon{flex:1;min-width:0;}
+.qtitle{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:4px;}
+.qcard.done .qtitle{text-decoration:line-through;color:var(--muted);}
+.qmeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
+.bxp{background:rgba(245,158,11,.15);color:var(--accent3);border:1px solid rgba(245,158,11,.3);}
+.bwk{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.2);}
+.bug{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.bdl{background:rgba(245,158,11,.1);color:#f97316;border:1px solid rgba(249,115,22,.3);}
+.bsub{background:rgba(16,185,129,.1);color:var(--success);border:1px solid rgba(16,185,129,.2);}
+.qact{display:flex;gap:5px;margin-left:auto;flex-shrink:0;}
+.qbtn{background:transparent;border:1px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.qbtn:hover{border-color:var(--accent);color:var(--accent);}
+.qbtn.del:hover{border-color:var(--danger);color:var(--danger);}
+.qbtn.detail{border-color:rgba(0,212,255,.3);color:var(--accent);}
+.phase-wrap{display:none;}
+.phase-wrap.active{display:block;}
+.add-btn{width:100%;padding:12px;background:transparent;border:1px dashed var(--border);border-radius:12px;color:var(--muted);cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;transition:all .2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.05);}
+
+/* ログ */
+.log-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:20px;}
+.log-ttl{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:12px;}
+.log-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(30,58,95,.5);font-size:12px;color:var(--muted);}
+.log-row:last-child{border-bottom:none;}
+.log-t{font-family:'Orbitron',monospace;font-size:10px;color:var(--accent);flex-shrink:0;}
+.log-tx{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.log-xp{font-family:'Orbitron',monospace;font-size:10px;flex-shrink:0;}
+.log-empty{color:var(--muted);font-size:12px;text-align:center;padding:12px 0;}
+
+/* ============================================================ スケジュール */
+.sched-sec{display:none;}
+.day-tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.day-tab{flex-shrink:0;padding:7px 10px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--muted);transition:all .2s;text-align:center;min-width:46px;}
+.day-tab.active{background:rgba(0,212,255,.15);border-color:var(--accent);color:var(--accent);}
+.day-tab small{font-size:10px;display:block;margin-top:2px;}
+.scard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.scard-ttl{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:12px;}
+.cfg-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.cfg-lbl{font-size:11px;color:var(--muted);width:60px;flex-shrink:0;}
+.cfg-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.cfg-btn{padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Noto Sans JP',sans-serif;}
+.cfg-btn.ar{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.1);}
+.cfg-btn.ag{border-color:#f97316;color:#f97316;background:rgba(249,115,22,.1);}
+.cfg-btn.ao{border-color:var(--accent2);color:var(--accent2);background:rgba(124,58,237,.1);}
+.wake-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.wake-btn{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Noto Sans JP',sans-serif;}
+.wake-btn.active{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;}
+.wake-sum{font-size:12px;color:var(--muted);margin-top:6px;}
+.wake-sum b{color:var(--accent);}
+.pomo-cnt-row{display:flex;gap:8px;margin-bottom:14px;}
+.pomo-cnt{flex:1;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 4px;}
+.pomo-cnt-n{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;}
+.pomo-cnt-l{font-size:10px;color:var(--muted);margin-top:2px;}
+.timeline{display:flex;flex-direction:column;gap:6px;}
+.tl-row{display:flex;align-items:flex-start;gap:10px;min-height:36px;}
+.tl-time{width:56px;font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);flex-shrink:0;padding-top:10px;text-align:right;line-height:1.3;}
+.tl-bar{flex:1;}
+.tl-item{border-radius:8px;padding:8px 12px;font-size:12px;}
+.tl-item.work{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--success);}
+.tl-item.rest{background:rgba(100,116,139,.08);border:1px solid rgba(100,116,139,.2);color:var(--muted);}
+.tl-item.free{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);color:var(--accent2);}
+.tl-item.sleep{background:rgba(30,58,95,.3);border:1px solid rgba(30,58,95,.5);color:var(--muted);}
+.tl-item.gym{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);color:#f97316;}
+.pomo-zone{border-radius:10px;padding:10px 12px;border:1px solid var(--border);margin-bottom:4px;touch-action:none;}
+.pomo-zone.morning{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));border-color:rgba(0,212,255,.2);}
+.pomo-zone.evening{background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(249,115,22,.06));border-color:rgba(245,158,11,.2);}
+.pomo-zone-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.morning .pomo-zone-lbl{color:var(--accent);}
+.evening .pomo-zone-lbl{color:var(--accent3);}
+.pomo-blocks{display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:4px 0;}
+.pomo-block{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:grab;user-select:none;transition:transform .15s;background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.25);touch-action:none;}
+.pomo-block:active{cursor:grabbing;}
+.pomo-block.dragging{opacity:.35;transform:scale(1.05);}
+.pomo-block .pb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;}
+.pomo-block .pb-cnt{font-size:9px;color:var(--muted);}
+.pomo-block .pb-del{margin-left:4px;cursor:pointer;color:var(--muted);font-size:10px;padding:2px;}
+.pomo-block .pb-del:hover{color:var(--danger);}
+.drop-hint{font-size:11px;color:rgba(100,116,139,.35);}
+.pomo-zone.dragover{border-color:var(--accent)!important;background:rgba(0,212,255,.08)!important;}
+.pomo-add-btn{width:100%;padding:10px;background:transparent;border:1px dashed rgba(0,212,255,.3);border-radius:10px;color:var(--accent);cursor:pointer;font-size:12px;font-family:'Noto Sans JP',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.pomo-add-btn:hover{background:rgba(0,212,255,.05);}
+/* クエスト連携セレクト */
+.pomo-q-link{font-size:10px;color:var(--accent2);margin-top:2px;}
+
+/* ============================================================ 週次レビュー */
+.review-sec{display:none;}
+.review-week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.review-week-lbl{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent);}
+.wk-nav-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;}
+.wk-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.review-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+.review-card-ttl{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:.15em;margin-bottom:14px;}
+.review-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:12px;outline:none;resize:none;min-height:80px;line-height:1.7;transition:border-color .2s;}
+.review-ta:focus{border-color:var(--accent);}
+.review-ta::placeholder{color:var(--muted);}
+.review-stats{display:flex;gap:8px;margin-bottom:14px;}
+.review-stat{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.review-stat-n{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--accent);}
+.review-stat-l{font-size:10px;color:var(--muted);margin-top:2px;}
+.review-quest-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;}
+.review-quest-item{display:flex;align-items:center;gap:10px;font-size:12px;padding:6px 8px;background:var(--bg);border-radius:6px;border:1px solid var(--border);}
+.review-quest-item .rq-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.review-quest-item .rq-dot.done{background:var(--success);}
+.review-quest-item .rq-dot.todo{background:var(--border);}
+
+/* ============================================================ ドロワー */
+.drawer-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;display:none;align-items:flex-end;justify-content:center;}
+.drawer-ov.show{display:flex;}
+.drawer{background:var(--panel);border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:900px;max-height:88vh;overflow-y:auto;padding:20px 20px 48px;animation:slideUp .3s cubic-bezier(.34,1.1,.64,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.drawer-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.drawer-ttl{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent);letter-spacing:.1em;margin-bottom:4px;}
+.drawer-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.d-sec-hdr{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.sub-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.sub-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.sub-chk{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.sub-chk:hover{border-color:var(--accent);}
+.sub-chk.on{background:var(--success);border-color:var(--success);}
+.sub-chk.on::after{content:'✓';color:#fff;font-size:11px;font-weight:bold;}
+.sub-text{flex:1;font-size:13px;}
+.sub-item.done .sub-text{text-decoration:line-through;color:var(--muted);}
+.sub-del{color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;}
+.sub-del:hover{color:var(--danger);}
+.sub-add-row{display:flex;gap:8px;margin-top:8px;}
+.sub-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:8px 12px;outline:none;transition:border-color .2s;}
+.sub-input:focus{border-color:var(--accent);}
+.sub-add-btn2{padding:8px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.sub-prog{height:4px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:8px;border:1px solid var(--border);}
+.sub-prog-fill{height:100%;background:linear-gradient(90deg,var(--success),var(--accent));border-radius:2px;transition:width .4s;}
+.pdca-section{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.pdca-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.pdca-lbl{padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;}
+.pdca-p .pdca-lbl{background:rgba(0,212,255,.08);color:var(--accent);}
+.pdca-d .pdca-lbl{background:rgba(16,185,129,.08);color:var(--success);}
+.pdca-c .pdca-lbl{background:rgba(245,158,11,.08);color:var(--accent3);}
+.pdca-a .pdca-lbl{background:rgba(124,58,237,.08);color:var(--accent2);}
+.pdca-ta{width:100%;background:transparent;border:none;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:10px 12px;outline:none;resize:none;min-height:70px;line-height:1.6;}
+.pdca-ta::placeholder{color:var(--muted);}
+
+/* モーダル共通 */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-ov.show{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:480px;box-shadow:0 0 40px rgba(0,212,255,.2);max-height:90vh;overflow-y:auto;}
+.modal-ttl{font-family:'Orbitron',monospace;font-size:14px;color:var(--accent);letter-spacing:.1em;margin-bottom:20px;}
+.fg{margin-bottom:14px;}
+.fl{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.fi,.fsel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s;}
+.fi:focus,.fsel:focus{border-color:var(--accent);}
+.fsel option{background:var(--panel);}
+.frow{display:flex;gap:12px;}
+.frow .fg{flex:1;}
+.mact{display:flex;gap:10px;margin-top:20px;}
+.btn-p{flex:1;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-c{padding:12px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-c:hover{border-color:var(--danger);color:var(--danger);}
+
+/* エフェクト */
+.burst{position:fixed;pointer-events:none;z-index:9999;}
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;animation:burst .8s ease-out forwards;}
+@keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.lv-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,var(--accent2),var(--accent));border:2px solid var(--accent);border-radius:20px;padding:24px 40px;text-align:center;z-index:10000;box-shadow:0 0 60px rgba(0,212,255,.6);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.lv-banner.show{transform:translate(-50%,-50%) scale(1);}
+.lv-title{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#fff;}
+.lv-sub{font-size:13px;color:rgba(255,255,255,.8);margin-top:8px;}
+/* インポート用隠しinput */
+#import-file{display:none;}
+
+/* ============================================================ ダッシュボード */
+.dash-sec{}
+.dash-overall{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+.dash-overall-ttl{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:12px;}
+.dash-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.dash-prog-lbl{font-size:11px;color:var(--muted);width:60px;flex-shrink:0;}
+.dash-prog-bg{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+.dash-prog-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.dash-prog-val{font-family:'Orbitron',monospace;font-size:10px;width:36px;text-align:right;flex-shrink:0;}
+.dash-cards{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.dash-card{flex:1;min-width:80px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
+.dash-card-n{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;}
+.dash-card-l{font-size:10px;color:var(--muted);margin-top:3px;}
+
+/* 大量記憶表 */
+.memory-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;overflow-x:auto;}
+.memory-table-ttl{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:4px;}
+.memory-table-sub{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.mem-table{width:100%;border-collapse:collapse;font-size:11px;}
+.mem-table th{background:rgba(0,212,255,.1);color:var(--accent);padding:6px 4px;text-align:center;border:1px solid var(--border);font-family:'Orbitron',monospace;font-size:9px;white-space:nowrap;}
+.mem-table td{padding:5px 4px;text-align:center;border:1px solid rgba(30,58,95,.5);color:var(--text);font-size:10px;white-space:nowrap;}
+.mem-table td.quest-name{text-align:left;padding-left:8px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
+.mem-cell{cursor:pointer;border-radius:4px;padding:3px 2px;transition:all .2s;display:inline-block;min-width:32px;}
+.mem-cell.today{color:var(--accent);font-weight:700;}
+.mem-cell.past{color:var(--muted);}
+.mem-cell.future{color:var(--text);}
+.mem-cell.reviewed{background:rgba(16,185,129,.25);color:var(--success);border:1px solid rgba(16,185,129,.3);}
+.mem-cell.due-today{background:rgba(245,158,11,.15);color:var(--accent3);border:1px solid rgba(245,158,11,.3);animation:pulse .8s infinite alternate;}
+@keyframes pulse{from{opacity:.7}to{opacity:1}}
+.mem-table tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ポモ完了チェック */
+.pomo-done-chk{width:16px;height:16px;border-radius:4px;border:1.5px solid rgba(0,212,255,.4);background:transparent;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;margin-left:4px;vertical-align:middle;}
+.pomo-done-chk.on{background:var(--success);border-color:var(--success);}
+.pomo-done-chk.on::after{content:'✓';color:#fff;font-size:9px;font-weight:bold;}
+</style>
+</head>
+<body>
+
+<!-- パスワード画面 -->
+<div id="pw-screen" style="position:fixed;inset:0;background:#030712;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#00d4ff;text-shadow:0 0 20px rgba(0,212,255,.5);letter-spacing:.05em;">🌌 INFRA EXPLORER</div>
+  <div style="font-size:12px;color:#64748b;letter-spacing:.1em;text-transform:uppercase;">アクセスコードを入力</div>
+  <div style="display:flex;flex-direction:column;gap:12px;width:260px;">
+    <input id="pw-input" type="password" placeholder="パスワード"
+      style="background:#0d1427;border:1px solid #1e3a5f;border-radius:10px;color:#e2e8f0;font-size:16px;padding:14px 16px;outline:none;text-align:center;letter-spacing:.2em;font-family:'Noto Sans JP',sans-serif;width:100%;"
+      onkeydown="if(event.key==='Enter')checkPW()">
+    <button onclick="checkPW()"
+      style="padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#00d4ff);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+      ログイン
+    </button>
+    <div id="pw-err" style="color:#ef4444;font-size:12px;text-align:center;display:none;">パスワードが違います</div>
+  </div>
+  <div style="font-size:10px;color:#1e3a5f;margin-top:20px;">変更する場合はHTMLファイル内のPASSWORDを書き換えてください</div>
+</div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-title">🌌 INFRA EXPLORER</div>
+    <div class="hdr-sub">世界征服ロードマップ · Quest Board</div>
+    <div class="hdr-acts">
+      <button class="hdr-btn danger" onclick="resetDaily()">⟳ デイリーリセット</button>
+      <button class="hdr-btn" onclick="exportData()">⬇ バックアップ</button>
+      <button class="hdr-btn" onclick="document.getElementById('import-file').click()">⬆ 復元</button>
+      <input type="file" id="import-file" accept=".json" onchange="importData(event)">
+    </div>
+  </div>
+
+  <div class="main-nav">
+    <button class="nav-btn active" id="nav-quest" onclick="showSec('quest')">⚔️ クエスト</button>
+    <button class="nav-btn" id="nav-sched" onclick="showSec('sched')">📅 スケジュール</button>
+    <button class="nav-btn" id="nav-review" onclick="showSec('review')">📝 レビュー</button>
+    <button class="nav-btn" id="nav-dash" onclick="showSec('dash')">📊 進捗</button>
+  </div>
+
+  <!-- クエスト -->
+  <div id="sec-quest">
+    <div class="xp-box">
+      <div class="xp-top">
+        <span class="xp-lbl">⚡ LEVEL <span id="level-num">1</span></span>
+        <span class="xp-val" id="xp-display">0 / 500 XP</span>
+      </div>
+      <div class="xp-bg"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">達成済み</div></div>
+        <div class="stat"><div class="stat-n" id="s-today">0</div><div class="stat-l">本日</div></div>
+        <div class="stat"><div class="stat-n" id="s-streak">0</div><div class="stat-l">連続日</div></div>
+        <div class="stat"><div class="stat-n" id="s-xp">0</div><div class="stat-l">累計XP</div></div>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="phase-container"></div>
+    <div class="log-box">
+      <div class="log-ttl">📡 MISSION LOG</div>
+      <div id="log-container"><div class="log-empty">クエストを達成するとここに記録されます</div></div>
+    </div>
+  </div>
+
+  <!-- ダッシュボード -->
+  <div id="sec-dash" style="display:none">
+    <div id="dash-body"></div>
+  </div>
+
+  <!-- スケジュール -->
+  <div id="sec-sched" class="sched-sec">
+    <div class="day-tabs" id="day-tabs"></div>
+    <div id="sched-body"></div>
+  </div>
+
+  <!-- 週次レビュー -->
+  <div id="sec-review" class="review-sec">
+    <div class="review-week-nav">
+      <button class="wk-nav-btn" onclick="changeWeek(-1)">◀ 前の週</button>
+      <span class="review-week-lbl" id="review-week-lbl"></span>
+      <button class="wk-nav-btn" onclick="changeWeek(1)">次の週 ▶</button>
+    </div>
+    <div id="review-body"></div>
+  </div>
+</div>
+
+<!-- クエストモーダル -->
+<div class="modal-ov" id="q-modal">
+  <div class="modal">
+    <div class="modal-ttl" id="q-modal-ttl">＋ NEW QUEST</div>
+    <div class="fg"><label class="fl">クエスト名 *</label><input class="fi" id="i-title" placeholder="例：基本情報技術者試験 合格" maxlength="60"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">フェーズ</label><select class="fsel" id="i-phase"></select></div>
+      <div class="fg"><label class="fl">XP報酬</label><input class="fi" id="i-xp" type="number" min="10" max="1000" step="10" value="50"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">種別</label>
+        <select class="fsel" id="i-type">
+          <option value="normal">通常</option>
+          <option value="urgent">🔴 緊急</option>
+          <option value="daily">🌅 デイリー</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">期限・メモ</label><input class="fi" id="i-badge" placeholder="例：7月目標"></div>
+    </div>
+    <div class="mact">
+      <button class="btn-c" onclick="closeQModal()">キャンセル</button>
+      <button class="btn-p" onclick="saveQuest()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ポモ追加モーダル -->
+<div class="modal-ov" id="p-modal">
+  <div class="modal">
+    <div class="modal-ttl">🍅 勉強ブロックを追加</div>
+    <div class="fg"><label class="fl">内容 *</label><input class="fi" id="p-name" placeholder="例：基本情報 過去問" maxlength="30"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">ポモドーロ数</label>
+        <select class="fsel" id="p-count">
+          <option value="1">1🍅 (30分)</option>
+          <option value="2" selected>2🍅 (60分)</option>
+          <option value="3">3🍅 (90分)</option>
+          <option value="4">4🍅 (120分)</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">配置</label>
+        <select class="fsel" id="p-slot"><option value="morning">🌅 朝</option><option value="evening">🌙 夜</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">クエストに紐付け（任意）</label><select class="fsel" id="p-quest"><option value="">-- なし --</option></select></div>
+    <div class="mact">
+      <button class="btn-c" onclick="closePModal()">キャンセル</button>
+      <button class="btn-p" onclick="savePomo()">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ドロワー -->
+<div class="drawer-ov" id="drawer" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer-inner">
+    <div class="drawer-handle"></div>
+    <div class="drawer-ttl" id="drawer-ttl"></div>
+    <div class="drawer-sub" id="drawer-sub"></div>
+    <div class="d-sec-hdr"><span>📋 サブタスク</span><span id="sub-cnt-lbl" style="font-size:11px;color:var(--muted)"></span></div>
+    <div class="sub-list" id="sub-list"></div>
+    <div class="sub-prog"><div class="sub-prog-fill" id="sub-prog-fill" style="width:0%"></div></div>
+    <div class="sub-add-row">
+      <input class="sub-input" id="sub-input" placeholder="サブタスクを追加..." maxlength="50">
+      <button class="sub-add-btn2" onclick="addSub()">＋</button>
+    </div>
+    <div class="pdca-section">
+      <div class="d-sec-hdr" style="margin-top:8px;"><span>🔄 PDCA</span></div>
+      <div class="pdca-item pdca-p"><div class="pdca-lbl">📌 Plan — 計画・目標</div><textarea class="pdca-ta" id="pdca-p" placeholder="このクエストで何を達成するか..." oninput="savePDCA()"></textarea></div>
+      <div class="pdca-item pdca-d"><div class="pdca-lbl">⚡ Do — 実行メモ</div><textarea class="pdca-ta" id="pdca-d" placeholder="やったこと、気づいたこと..." oninput="savePDCA()"></textarea></div>
+      <div class="pdca-item pdca-c"><div class="pdca-lbl">🔍 Check — 振り返り</div><textarea class="pdca-ta" id="pdca-c" placeholder="うまくいったか？詰まった点は？" oninput="savePDCA()"></textarea></div>
+      <div class="pdca-item pdca-a"><div class="pdca-lbl">🚀 Act — 次のアクション</div><textarea class="pdca-ta" id="pdca-a" placeholder="次回どう改善するか？" oninput="savePDCA()"></textarea></div>
+    </div>
+  </div>
+</div>
+
+<div class="lv-banner" id="lv-banner">
+  <div class="lv-title" id="lv-txt">LEVEL UP!</div>
+  <div class="lv-sub" id="lv-sub">新しい星へ着陸！</div>
+</div>
+
+<script>
+// ============================================================
+// パスワード保護
+// ============================================================
+// パスワード（GitHubで公開されますが元の文字列は分かりにくくしています）
+const _a='hana',_b='2026';
+function checkPW(){
+  const val=document.getElementById('pw-input').value;
+  if(val===_a+_b){
+    document.getElementById('pw-screen').style.display='none';
+    localStorage.setItem('iq-auth','1');
+  }else{
+    document.getElementById('pw-err').style.display='block';
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+// 認証済みチェック
+(function(){
+  if(localStorage.getItem('iq-auth')==='1'){
+    document.getElementById('pw-screen').style.display='none';
+  }else{
+    setTimeout(()=>document.getElementById('pw-input').focus(),100);
+  }
+})();
+
+// ============================================================
+// 定数・デフォルト
+// ============================================================
+const XPL=500;
+const LV_NAMES=['ルーキー探検家','銀河の冒険者','星系の戦士','ネットワーク征服者','クラウドの使者','DevOpsマスター','インフラ将軍','銀河最強傭兵'];
+const DAYS=['月','火','水','木','金','土','日'];
+const POMO_TOTAL=30;
+
+const DEFAULT_PHASES=[
+  {id:'ph0',label:'🔥 Ph.0 緊急',title:'緊急クエスト · 〜6/1締め切り'},
+  {id:'ph1',label:'⚔️ Ph.1 基礎',title:'基礎武装 · 2026年6〜9月'},
+  {id:'ph2',label:'🛸 Ph.2 艦隊',title:'艦隊整備 · 2026/10〜2027/3'},
+  {id:'ph3',label:'🪐 Ph.3 本星',title:'本星着陸 · 2027年4〜9月'},
+  {id:'ph4',label:'🌠 Ph.4 銀河',title:'銀河拡張 · 2027/10〜2028/9'},
+  {id:'ph5',label:'🏁 Ph.5 征服',title:'世界征服 · 2028/10〜2029年春'},
+];
+const DEFAULT_QUESTS=[
+  {id:'q1',phase:'ph0',title:'Zennハッカソン申込登録',xp:50,type:'urgent',badge:'最優先'},
+  {id:'q2',phase:'ph0',title:'Azureアカウント新規作成',xp:50,type:'urgent',badge:'最優先'},
+  {id:'q3',phase:'ph0',title:'Azure OpenAI Serviceのリソース申請',xp:80,type:'normal',badge:'Week 1'},
+  {id:'q4',phase:'ph0',title:'Streamlit + Azure OpenAI 接続テスト',xp:100,type:'normal',badge:'Week 1-2'},
+  {id:'q5',phase:'ph0',title:'InfraDoc Agent コア実装（テキスト→.docx生成）',xp:150,type:'normal',badge:'Week 2'},
+  {id:'q6',phase:'ph0',title:'Azure App Service にデプロイ',xp:120,type:'normal',badge:'Week 3'},
+  {id:'q7',phase:'ph0',title:'Zenn記事執筆・GitHub整備・最終提出 🏆',xp:200,type:'urgent',badge:'〆切 6/1'},
+  {id:'q8',phase:'ph0',title:'🌅 朝の勉強（ポモドーロ）',xp:30,type:'daily',badge:'毎日'},
+  {id:'q9',phase:'ph0',title:'🏃 ランニング or 筋トレ',xp:20,type:'daily',badge:'毎日'},
+  {id:'q11',phase:'ph1',title:'🎖️ 基本情報技術者試験 合格',xp:200,type:'normal',badge:'7月目標'},
+  {id:'q12',phase:'ph1',title:'AIIT 2Q 情報セキュリティ特別講義 受講完了',xp:100,type:'normal',badge:'6〜8月'},
+  {id:'q13',phase:'ph1',title:'AIIT 2Q アジャイル開発手法特論 受講完了',xp:100,type:'normal',badge:'6〜8月'},
+  {id:'q14',phase:'ph1',title:'Udemy Docker しま先生 全章完了',xp:120,type:'normal',badge:'7〜8月'},
+  {id:'q15',phase:'ph1',title:'Terraform + AWS（EC2/VPC/RDS）をコードで構築',xp:150,type:'normal',badge:'9月'},
+  {id:'q16',phase:'ph1',title:'GitHub Actions 自動デプロイ 1本完成',xp:120,type:'normal',badge:'9月'},
+  {id:'q17',phase:'ph1',title:'GitHubポートフォリオ README 初稿作成',xp:80,type:'normal',badge:'9月'},
+  {id:'q18',phase:'ph2',title:'ネスペ 午前Ⅱ 過去5年分完走',xp:80,type:'normal',badge:'10月'},
+  {id:'q19',phase:'ph2',title:'ネスペ 午後Ⅰ・Ⅱ 過去3年分完走',xp:120,type:'normal',badge:'10月'},
+  {id:'q20',phase:'ph2',title:'🎖️ ネットワークスペシャリスト 受験',xp:300,type:'urgent',badge:'10月第3週'},
+  {id:'q21',phase:'ph2',title:'GitHubポートフォリオ 公開品質に仕上げ',xp:150,type:'normal',badge:'11月'},
+  {id:'q22',phase:'ph2',title:'支援士 午前Ⅱ 過去問スタート',xp:80,type:'normal',badge:'12月'},
+  {id:'q23',phase:'ph2',title:'AIIT本科 入試・出願手続き完了',xp:100,type:'normal',badge:'2027年2月'},
+  {id:'q24',phase:'ph2',title:'ハローワーク 給付金事前確認',xp:80,type:'normal',badge:'2027年1〜2月'},
+  {id:'q25',phase:'ph3',title:'🚀 AIIT 本科入学・給付金申請完了',xp:300,type:'urgent',badge:'2027年4月'},
+  {id:'q26',phase:'ph3',title:'🎖️ 情報処理安全確保支援士 合格',xp:400,type:'normal',badge:'2027年上半期'},
+  {id:'q27',phase:'ph3',title:'AIIT PBL科目 積極参加・成果物作成',xp:150,type:'normal',badge:'2027年度'},
+  {id:'q28',phase:'ph4',title:'AIIT PBL成果物 GitHub公開',xp:200,type:'normal',badge:'2028年'},
+  {id:'q29',phase:'ph4',title:'転職エージェント登録・求人リサーチ開始',xp:150,type:'normal',badge:'2028年後半'},
+  {id:'q30',phase:'ph4',title:'職務経歴書 完成・添削済み',xp:200,type:'normal',badge:'2028年後半'},
+  {id:'q31',phase:'ph5',title:'書類選考 通過（週3社ペース）',xp:300,type:'normal',badge:'2028年10月〜'},
+  {id:'q32',phase:'ph5',title:'🎖️ AIIT 修了（修士・専門職）',xp:300,type:'normal',badge:'2029年春'},
+  {id:'q33',phase:'ph5',title:'🏆 フルリモート クラウドDevOps系 内定獲得！！',xp:1000,type:'urgent',badge:'FINAL BOSS'},
+];
+
+function makeDefaultPomos(){
+  return {
+    0:{morning:[{id:'pm1',name:'基本情報 過去問',count:2,questId:''},{id:'pm2',name:'ハッカソン実装',count:1,questId:'q5'}],evening:[]},
+    1:{morning:[{id:'pm3',name:'Udemy',count:1,questId:'q14'}],evening:[]},
+    2:{morning:[{id:'pm4',name:'ハッカソン実装',count:2,questId:'q5'}],evening:[]},
+    3:{morning:[{id:'pm5',name:'基本情報 間違え直し',count:1,questId:''}],evening:[]},
+    4:{morning:[{id:'pm6',name:'ハッカソン実装',count:2,questId:'q5'}],evening:[]},
+    5:{morning:[{id:'pm7',name:'週の補填・実装',count:2,questId:''}],evening:[]},
+    6:{morning:[{id:'pm8',name:'週次振り返り',count:1,questId:''}],evening:[]},
+  };
+}
+
+// ============================================================
+// State
+// ============================================================
+let S=JSON.parse(localStorage.getItem('infraQ5')||'null')||{
+  xp:0,completed:{},todayCompleted:0,streak:0,
+  lastDate:'',log:[],quests:DEFAULT_QUESTS,
+  phases:DEFAULT_PHASES,currentPhase:0,
+  currentSection:'quest',currentDay:0,
+  dayTypes:['run','run','run','run','run','gym','off'],
+  wakeHours:[6,6,6,6,6,6,7],
+  pomos:makeDefaultPomos(),
+  details:{},reviews:{},
+  reviewWeekOffset:0,
+};
+
+// デイリーリセット
+const today=new Date().toDateString();
+if(S.lastDate!==today){
+  if(S.todayCompleted>0){
+    const yest=new Date(Date.now()-86400000).toDateString();
+    S.streak=S.lastDate===yest?S.streak+1:1;
+  }
+  S.quests.filter(q=>q.type==='daily').forEach(q=>{delete S.completed[q.id];});
+  S.todayCompleted=0;S.lastDate=today;
+  S.currentDay=(new Date().getDay()+6)%7;
+  save();
+}
+
+let editQId=null,drawerQId=null;
+let dragId=null,dragFrom=null,dragDayIdx=null;
+function save(){localStorage.setItem('infraQ5',JSON.stringify(S));}
+
+// ============================================================
+// バックアップ・復元
+// ============================================================
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`infra-quest-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.quests||!data.phases)throw new Error('invalid');
+      S=data;save();
+      alert('✅ データを復元しました！');
+      location.reload();
+    }catch{alert('❌ ファイルが正しくありません');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ============================================================
+// セクション切替
+// ============================================================
+function showSec(sec){
+  S.currentSection=sec;save();
+  ['quest','sched','review','dash'].forEach(s=>{
+    document.getElementById('sec-'+s).style.display=s===sec?'block':'none';
+    document.getElementById('nav-'+s).classList.toggle('active',s===sec);
+  });
+  if(sec==='sched')renderSched();
+  if(sec==='review')renderReview();
+  if(sec==='dash')renderDash();
+}
+
+// ============================================================
+// クエスト
+// ============================================================
+function renderAll(){renderTabs();renderPhases();renderXP();renderLog();}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=S.phases.map((p,i)=>
+    `<div class="tab ${i===S.currentPhase?'active':''}" onclick="switchPhase(${i})">${p.label}</div>`
+  ).join('');
+}
+
+function renderPhases(){
+  document.getElementById('phase-container').innerHTML=S.phases.map((p,i)=>{
+    const qs=S.quests.filter(q=>q.phase===p.id);
+    return `<div class="phase-wrap ${i===S.currentPhase?'active':''}" id="pw-${i}">
+      <div class="sec-hdr">${p.title}</div>
+      <div>${qs.map(renderQCard).join('')}</div>
+      <button class="add-btn" onclick="openQModal(null,'${p.id}')">＋ クエストを追加</button>
+    </div>`;
+  }).join('');
+  const sel=document.getElementById('i-phase');
+  if(sel)sel.innerHTML=S.phases.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+}
+
+function renderQCard(q){
+  const done=!!S.completed[q.id];
+  const det=S.details&&S.details[q.id];
+  let subBadge='';
+  if(det&&det.subtasks&&det.subtasks.length){
+    const dc=det.subtasks.filter(s=>s.done).length;
+    subBadge=`<span class="badge bsub">${dc}/${det.subtasks.length}</span>`;
+  }
+  return `<div class="qcard ${done?'done':''} ${q.type==='urgent'?'urgent':''} ${q.type==='daily'?'daily':''}" id="card-${q.id}">
+    <div class="qhdr">
+      <div class="chk ${done?'on':''}" onclick="toggleQ('${q.id}')"></div>
+      <div class="qcon">
+        <div class="qtitle">${q.title}</div>
+        <div class="qmeta">
+          ${q.type==='urgent'?'<span class="badge bug">🔴 緊急</span>':''}
+          ${q.type==='daily'?'<span class="badge bdl">🌅 デイリー</span>':''}
+          ${q.badge?`<span class="badge bwk">${q.badge}</span>`:''}
+          <span class="badge bxp">+${q.xp} XP</span>
+          ${subBadge}
+        </div>
+      </div>
+      <div class="qact">
+        <button class="qbtn detail" onclick="openDrawer('${q.id}')" title="詳細・PDCA">📋</button>
+        <button class="qbtn" onclick="openQModal('${q.id}')">✏️</button>
+        <button class="qbtn del" onclick="deleteQ('${q.id}')">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderXP(){
+  const lvl=Math.floor(S.xp/XPL)+1,xpIn=S.xp%XPL;
+  document.getElementById('level-num').textContent=lvl;
+  document.getElementById('xp-display').textContent=`${xpIn} / ${XPL} XP`;
+  document.getElementById('xp-bar').style.width=(xpIn/XPL*100)+'%';
+  document.getElementById('s-total').textContent=Object.keys(S.completed).length;
+  document.getElementById('s-today').textContent=S.todayCompleted;
+  document.getElementById('s-streak').textContent=S.streak;
+  document.getElementById('s-xp').textContent=S.xp;
+}
+
+function renderLog(){
+  const el=document.getElementById('log-container');
+  if(!S.log.length){el.innerHTML='<div class="log-empty">クエストを達成するとここに記録されます</div>';return;}
+  el.innerHTML=S.log.slice(-8).reverse().map(l=>
+    `<div class="log-row"><span class="log-t">${l.time}</span><span class="log-tx">${l.title}</span><span class="log-xp" style="color:${l.xp>0?'var(--accent3)':'var(--danger)'}">${l.xp>0?'+':''}${l.xp} XP</span></div>`
+  ).join('');
+}
+
+function switchPhase(i){S.currentPhase=i;save();renderTabs();document.querySelectorAll('.phase-wrap').forEach((el,j)=>el.classList.toggle('active',j===i));}
+
+function toggleQ(id){
+  const q=S.quests.find(x=>x.id===id);if(!q)return;
+  const card=document.getElementById('card-'+id),chk=card.querySelector('.chk');
+  if(S.completed[id]){
+    delete S.completed[id];S.xp=Math.max(0,S.xp-q.xp);S.todayCompleted=Math.max(0,S.todayCompleted-1);
+    chk.classList.remove('on');card.classList.remove('done');addLog('↩ '+q.title,-q.xp);
+  }else{
+    const ol=Math.floor(S.xp/XPL)+1;
+    S.completed[id]=new Date().toISOString().slice(0,10);S.xp+=q.xp;S.todayCompleted++;
+    const nl=Math.floor(S.xp/XPL)+1;
+    chk.classList.add('on');card.classList.add('done');addLog(q.title,q.xp);
+    spawnP(chk);playSound(nl>ol?'lv':'ok');
+    if(nl>ol)setTimeout(()=>showLV(nl),300);
+  }
+  save();renderXP();renderLog();
+}
+
+function addLog(t,xp){
+  const n=new Date(),time=`${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
+  S.log.push({time,title:t,xp});if(S.log.length>50)S.log=S.log.slice(-50);
+}
+
+function deleteQ(id){
+  if(!confirm('このクエストを削除しますか？'))return;
+  delete S.completed[id];S.quests=S.quests.filter(q=>q.id!==id);save();renderPhases();renderXP();
+}
+
+function resetDaily(){
+  if(!confirm('デイリークエストのチェックをリセットしますか？'))return;
+  S.quests.filter(q=>q.type==='daily').forEach(q=>{delete S.completed[q.id];});S.todayCompleted=0;save();renderPhases();renderXP();
+}
+
+
+// ============================================================
+// ポモ完了チェック
+// ============================================================
+function togglePomoDone(key,dayIdx){
+  if(!S.pomoDone)S.pomoDone={};
+  S.pomoDone[key]=!S.pomoDone[key];
+  save();renderSchedBody();
+  if(S.pomoDone[key])playSound('ok');
+}
+
+// ============================================================
+// ダッシュボード（進捗俯瞰＋大量記憶表）
+// ============================================================
+const REVIEW_INTERVALS=[0.5,1,2,3,4,5,6,7]; // 日数
+
+function renderDash(){
+  const allQ=S.quests.filter(q=>q.type!=='daily');
+  const doneQ=allQ.filter(q=>S.completed[q.id]);
+  const totalXP=S.xp;
+  const pct=allQ.length?Math.round(doneQ.length/allQ.length*100):0;
+
+  // フェーズごとの進捗
+  const phaseRows=S.phases.map(ph=>{
+    const pqs=allQ.filter(q=>q.phase===ph.id);
+    const pDone=pqs.filter(q=>S.completed[q.id]).length;
+    const pPct=pqs.length?Math.round(pDone/pqs.length*100):0;
+    const col=pPct===100?'var(--success)':pPct>50?'var(--accent)':'var(--accent2)';
+    return `<div class="dash-prog-row">
+      <span class="dash-prog-lbl" style="font-size:10px">${ph.label.slice(0,8)}</span>
+      <div class="dash-prog-bg"><div class="dash-prog-fill" style="width:${pPct}%;background:${col}"></div></div>
+      <span class="dash-prog-val" style="color:${col}">${pDone}/${pqs.length}</span>
+    </div>`;
+  }).join('');
+
+  // 大量記憶表（達成済みクエストのみ）
+  const memRows=doneQ.map(q=>{
+    const doneDate=S.completed[q.id]; // "2026-05-05"
+    if(typeof doneDate!=='string')return '';
+    const doneDateObj=new Date(doneDate+'T00:00:00');
+    const todayObj=new Date(new Date().toISOString().slice(0,10)+'T00:00:00');
+    const reviewKey=(q.id,date)=>`rv-${q.id}-${date}`;
+
+    const cells=REVIEW_INTERVALS.map(interval=>{
+      const reviewDate=new Date(doneDateObj);
+      reviewDate.setDate(reviewDate.getDate()+Math.round(interval===0.5?0:interval));
+      // 0.5は半日後≒当日
+      const rDateStr=reviewDate.toISOString().slice(0,10);
+      const diffDays=Math.round((reviewDate-todayObj)/(1000*60*60*24));
+      const rKey=`rv-${q.id}-${rDateStr}`;
+      const isReviewed=S.reviewDone&&S.reviewDone[rKey];
+      const isToday=diffDays===0;
+      const isPast=diffDays<0;
+      let cls=isReviewed?'reviewed':isToday?'due-today':isPast?'past':'future';
+      const label=interval===0.5?`${rDateStr.slice(5)}`:`${rDateStr.slice(5)}`;
+      return `<td><span class="mem-cell ${cls}" onclick="toggleReview('${rKey}')" title="${isToday?'📌今日':''}${interval}日後">${label}</span></td>`;
+    }).join('');
+
+    return `<tr>
+      <td class="quest-name" title="${q.title}">${q.title.slice(0,16)}${q.title.length>16?'…':''}</td>
+      <td style="color:var(--muted);font-size:10px">${doneDate.slice(5)}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  const todayDueCount=doneQ.filter(q=>{
+    if(typeof S.completed[q.id]!=='string')return false;
+    const doneDateObj=new Date(S.completed[q.id]+'T00:00:00');
+    const todayObj=new Date(new Date().toISOString().slice(0,10)+'T00:00:00');
+    return REVIEW_INTERVALS.some(interval=>{
+      const rd=new Date(doneDateObj);
+      rd.setDate(rd.getDate()+Math.round(interval===0.5?0:interval));
+      const rDateStr=rd.toISOString().slice(0,10);
+      const rKey=`rv-${q.id}-${rDateStr}`;
+      const diff=Math.round((rd-todayObj)/(1000*60*60*24));
+      return diff===0&&!(S.reviewDone&&S.reviewDone[rKey]);
+    });
+  }).length;
+
+  document.getElementById('dash-body').innerHTML=`
+    <div class="dash-overall">
+      <div class="dash-overall-ttl">🌌 全体進捗</div>
+      <div class="dash-cards">
+        <div class="dash-card"><div class="dash-card-n" style="color:var(--accent)">${pct}%</div><div class="dash-card-l">全体達成率</div></div>
+        <div class="dash-card"><div class="dash-card-n" style="color:var(--success)">${doneQ.length}/${allQ.length}</div><div class="dash-card-l">クエスト</div></div>
+        <div class="dash-card"><div class="dash-card-n" style="color:var(--accent3)">${totalXP}</div><div class="dash-card-l">累計XP</div></div>
+        <div class="dash-card"><div class="dash-card-n" style="color:${todayDueCount>0?'var(--danger)':'var(--muted)'}">${todayDueCount}</div><div class="dash-card-l">今日の復習</div></div>
+      </div>
+      ${phaseRows}
+    </div>
+
+    ${doneQ.length>0?`
+    <div class="memory-table-wrap">
+      <div class="memory-table-ttl">🧠 大量記憶表</div>
+      <div class="memory-table-sub">達成済みクエストの復習スケジュール · タップで復習済みマーク</div>
+      <table class="mem-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding-left:8px">クエスト</th>
+            <th>達成日</th>
+            ${REVIEW_INTERVALS.map(i=>`<th>${i}日後</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>${memRows}</tbody>
+      </table>
+    </div>`:'<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">クエストを達成すると大量記憶表が表示されます</div>'}
+  `;
+}
+
+function toggleReview(key){
+  if(!S.reviewDone)S.reviewDone={};
+  S.reviewDone[key]=!S.reviewDone[key];
+  save();renderDash();
+  if(S.reviewDone[key])playSound('ok');
+}
+
+function openQModal(id,defPhase){
+  editQId=id;
+  const sel=document.getElementById('i-phase');
+  sel.innerHTML=S.phases.map(p=>`<option value="${p.id}">${p.label}</option>`).join('');
+  if(id){
+    const q=S.quests.find(x=>x.id===id);
+    document.getElementById('q-modal-ttl').textContent='✏️ EDIT QUEST';
+    document.getElementById('i-title').value=q.title;
+    document.getElementById('i-xp').value=q.xp;
+    document.getElementById('i-type').value=q.type;
+    document.getElementById('i-badge').value=q.badge||'';
+    sel.value=q.phase;
+  }else{
+    document.getElementById('q-modal-ttl').textContent='＋ NEW QUEST';
+    document.getElementById('i-title').value='';
+    document.getElementById('i-xp').value='50';
+    document.getElementById('i-type').value='normal';
+    document.getElementById('i-badge').value='';
+    if(defPhase)sel.value=defPhase;
+  }
+  document.getElementById('q-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('i-title').focus(),100);
+}
+function closeQModal(){document.getElementById('q-modal').classList.remove('show');editQId=null;}
+function saveQuest(){
+  const t=document.getElementById('i-title').value.trim();if(!t){alert('クエスト名を入力してください');return;}
+  const xp=parseInt(document.getElementById('i-xp').value)||50,type=document.getElementById('i-type').value;
+  const badge=document.getElementById('i-badge').value.trim(),phase=document.getElementById('i-phase').value;
+  if(editQId){const q=S.quests.find(x=>x.id===editQId);Object.assign(q,{title:t,xp,type,badge,phase});}
+  else S.quests.push({id:'q'+Date.now(),phase,title:t,xp,type,badge});
+  save();closeQModal();renderPhases();
+}
+
+// ============================================================
+// ドロワー（サブタスク・PDCA）
+// ============================================================
+function openDrawer(id){
+  drawerQId=id;
+  const q=S.quests.find(x=>x.id===id);if(!q)return;
+  if(!S.details[id])S.details[id]={subtasks:[],pdca:{p:'',d:'',c:'',a:''}};
+  const det=S.details[id];
+  document.getElementById('drawer-ttl').textContent=q.title;
+  document.getElementById('drawer-sub').textContent=q.badge?`📅 ${q.badge}`:'';
+  document.getElementById('pdca-p').value=det.pdca.p||'';
+  document.getElementById('pdca-d').value=det.pdca.d||'';
+  document.getElementById('pdca-c').value=det.pdca.c||'';
+  document.getElementById('pdca-a').value=det.pdca.a||'';
+  document.getElementById('sub-input').value='';
+  renderSubs();
+  document.getElementById('drawer').classList.add('show');
+}
+function closeDrawer(e){
+  if(e&&e.target!==document.getElementById('drawer'))return;
+  document.getElementById('drawer').classList.remove('show');
+  drawerQId=null;
+}
+function renderSubs(){
+  if(!drawerQId)return;
+  const subs=S.details[drawerQId].subtasks||[];
+  const done=subs.filter(s=>s.done).length;
+  const pct=subs.length?Math.round(done/subs.length*100):0;
+  document.getElementById('sub-cnt-lbl').textContent=subs.length?`${done}/${subs.length} (${pct}%)`:'';
+  document.getElementById('sub-prog-fill').style.width=pct+'%';
+  document.getElementById('sub-list').innerHTML=subs.map(s=>`
+    <div class="sub-item ${s.done?'done':''}" id="si-${s.id}">
+      <div class="sub-chk ${s.done?'on':''}" onclick="toggleSub('${s.id}')"></div>
+      <span class="sub-text">${s.text}</span>
+      <span class="sub-del" onclick="deleteSub('${s.id}')">✕</span>
+    </div>`).join('');
+}
+function addSub(){
+  const inp=document.getElementById('sub-input');
+  const text=inp.value.trim();if(!text||!drawerQId)return;
+  S.details[drawerQId].subtasks.push({id:'s'+Date.now(),text,done:false});
+  inp.value='';save();renderSubs();refreshQCard(drawerQId);
+}
+function toggleSub(sid){
+  if(!drawerQId)return;
+  const s=S.details[drawerQId].subtasks.find(x=>x.id===sid);
+  if(!s)return;s.done=!s.done;
+  save();renderSubs();refreshQCard(drawerQId);
+  if(s.done)playSound('ok');
+}
+function deleteSub(sid){
+  if(!drawerQId)return;
+  S.details[drawerQId].subtasks=S.details[drawerQId].subtasks.filter(s=>s.id!==sid);
+  save();renderSubs();refreshQCard(drawerQId);
+}
+function savePDCA(){
+  if(!drawerQId)return;
+  S.details[drawerQId].pdca={
+    p:document.getElementById('pdca-p').value,
+    d:document.getElementById('pdca-d').value,
+    c:document.getElementById('pdca-c').value,
+    a:document.getElementById('pdca-a').value,
+  };
+  save();
+}
+function refreshQCard(id){
+  const q=S.quests.find(x=>x.id===id);if(!q)return;
+  const card=document.getElementById('card-'+id);
+  if(card)card.outerHTML=renderQCard(q);
+}
+
+// ============================================================
+// スケジュール
+// ============================================================
+function dayIcon(t){return t==='run'?'🏃':t==='gym'?'🏋️':t==='none'?'😴':'🎮';}
+
+function renderSched(){
+  // 曜日タブ
+  document.getElementById('day-tabs').innerHTML=DAYS.map((d,i)=>{
+    const t=S.dayTypes[i];
+    return `<div class="day-tab ${i===S.currentDay?'active':''}" onclick="switchDay(${i})">${d}<small>${dayIcon(t)}</small></div>`;
+  }).join('');
+  renderSchedBody();
+}
+
+function switchDay(i){S.currentDay=i;save();renderSched();}
+
+function renderSchedBody(){
+  const d=S.currentDay,dtype=S.dayTypes[d],wake=S.wakeHours[d];
+  const pomos=S.pomos[d]||{morning:[],evening:[]};
+  const mc=pomos.morning.reduce((a,p)=>a+p.count,0);
+  const ec=pomos.evening.reduce((a,p)=>a+p.count,0);
+  const tc=mc+ec;
+
+  document.getElementById('sched-body').innerHTML=`
+    <div class="scard">
+      <div class="scard-ttl">⚙️ ${DAYS[d]}曜日の設定</div>
+      <div class="cfg-row">
+        <span class="cfg-lbl">運動</span>
+        <div class="cfg-btns">
+          <button class="cfg-btn ${dtype==='run'?'ar':''}" onclick="setDayType(${d},'run')">🏃 ラン</button>
+          <button class="cfg-btn ${dtype==='gym'?'ag':''}" onclick="setDayType(${d},'gym')">🏋️ 筋トレ</button>
+          <button class="cfg-btn ${dtype==='none'?'ar':''}" onclick="setDayType(${d},'none')">😴 なし</button>
+          <button class="cfg-btn ${dtype==='off'?'ao':''}" onclick="setDayType(${d},'off')">🎮 休日</button>
+        </div>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-ttl">🌅 起床時間</div>
+      <div class="wake-btns">
+        ${[5,6,7].map(h=>`<button class="wake-btn ${wake===h?'active':''}" onclick="setWake(${d},${h})">${h}:00</button>`).join('')}
+      </div>
+      <div class="wake-sum" id="wake-sum">${wakeDesc(d,wake,dtype)}</div>
+    </div>
+    <div class="scard">
+      <div class="scard-ttl">🍅 TODAY'S POMODOROS</div>
+      <div class="pomo-cnt-row">
+        <div class="pomo-cnt"><div class="pomo-cnt-n" style="color:var(--accent)">${mc}</div><div class="pomo-cnt-l">朝🌅</div></div>
+        <div class="pomo-cnt"><div class="pomo-cnt-n" style="color:var(--accent3)">${ec}</div><div class="pomo-cnt-l">夜🌙</div></div>
+        <div class="pomo-cnt"><div class="pomo-cnt-n" style="color:var(--success)">${tc}</div><div class="pomo-cnt-l">合計</div></div>
+        <div class="pomo-cnt"><div class="pomo-cnt-n" style="color:var(--accent2)">${tc*POMO_TOTAL}</div><div class="pomo-cnt-l">分</div></div>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-ttl">${DAYS[d]}曜日 タイムライン</div>
+      <div class="timeline">${buildTimeline(d,wake,dtype,pomos)}</div>
+    </div>
+    <button class="pomo-add-btn" onclick="openPModal()">＋ 勉強ブロックを追加</button>
+  `;
+  // タッチイベント設定
+  setupDragTouch();
+}
+
+function wakeDesc(d,h,dtype){
+  const m=getMorningMins(dtype,h);
+  return `${h}時起き → 朝に<b>${m}分</b>確保 · 夜は${m>=90?'完全自由🎮':'余裕があれば🌙'}`;
+}
+function getMorningMins(dtype,h){
+  const isGym=dtype==='gym';
+  if(h<=6)return isGym?65:105;
+  return isGym?30:45;
+}
+
+function buildTimeline(d,wake,dtype,pomos){
+  const fmt=m=>`${Math.floor(m/60)}:${(m%60).toString().padStart(2,'0')}`;
+  const wm=wake*60,isGym=dtype==='gym',isOff=dtype==='off';
+  let rows=[];
+  rows.push(ti(fmt(wm),'🌅 起床・身支度','rest'));
+  if(isGym){
+    rows.push(tz(fmt(wm+15),'朝',pomos.morning.slice(0,Math.ceil(pomos.morning.length/2)),'morning',d));
+    rows.push(ti(fmt(wm+50),'🏋️ 筋トレ','gym'));
+    rows.push(ti(fmt(wm+80),'シャワー','rest'));
+    rows.push(tz(fmt(wm+95),'朝②',pomos.morning.slice(Math.ceil(pomos.morning.length/2)),'morning',d));
+  }else if(dtype==='run'){
+    rows.push(ti(fmt(wm+15),'🏃 ランニング','work'));
+    rows.push(ti(fmt(wm+30),'入浴','rest'));
+    rows.push(tz(fmt(wm+45),'朝',pomos.morning,'morning',d));
+  }else{
+    rows.push(tz(fmt(wm+15),'朝',pomos.morning,'morning',d));
+  }
+  rows.push(ti('8:30','朝食','rest'));
+  if(!isOff){
+    rows.push(ti('9:00〜17:30','💼 仕事','work'));
+    rows.push(ti('17:30','夕飯作り・食事','rest'));
+  }else{
+    rows.push(ti('〜昼','🎮 自由（休日）','free'));
+  }
+  if(pomos.evening.length>0){
+    rows.push(tz(isOff?'14:00':'18:30','夜',pomos.evening,'evening',d));
+    rows.push(ti(isOff?'16:00':'20:00','入浴','rest'));
+    rows.push(ti(isOff?'16:30':'20:30','🎮 自由時間','free'));
+  }else{
+    rows.push(ti(isOff?'15:00':'18:30','🎮 完全自由時間','free'));
+    rows.push(ti(isOff?'19:30':'20:00','入浴','rest'));
+    rows.push(ti(isOff?'20:00':'20:30','🎮 自由（ブルーライトカット）','free'));
+  }
+  rows.push(ti('21:30','就寝準備','rest'));
+  rows.push(ti('22:00','😴 就寝（8時間）','sleep'));
+  return rows.join('');
+}
+function ti(time,label,cls){
+  return `<div class="tl-row"><div class="tl-time">${time}</div><div class="tl-bar"><div class="tl-item ${cls}">${label}</div></div></div>`;
+}
+function tz(time,label,ps,zone,dayIdx){
+  const zLabel=zone==='morning'?`🌅 朝の勉強`:`🌙 夜の勉強`;
+  return `<div class="tl-row">
+    <div class="tl-time">${time}</div>
+    <div class="tl-bar">
+      <div class="pomo-zone ${zone}" id="zone-${zone}" data-zone="${zone}" data-day="${dayIdx}"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="onDrop(event,'${zone}',${dayIdx})">
+        <div class="pomo-zone-lbl">${zLabel}</div>
+        <div class="pomo-blocks" id="blocks-${zone}">
+          ${ps.map(p=>renderPB(p,zone,dayIdx)).join('')}
+          ${ps.length===0?'<span class="drop-hint">ここにドロップして移動</span>':''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function renderPB(p,zone,dayIdx){
+  const q=p.questId?S.quests.find(x=>x.id===p.questId):null;
+  const qLink=q?`<div class="pomo-q-link">→ ${q.title.slice(0,20)}${q.title.length>20?'…':''}</div>`:'';
+  const doneKey=`pomo-done-${dayIdx}-${p.id}-${new Date().toISOString().slice(0,10)}`;
+  const isDone=S.pomoDone&&S.pomoDone[doneKey];
+  return `<div class="pomo-block ${isDone?'done':''}" draggable="true" id="pb-${p.id}"
+    data-id="${p.id}" data-zone="${zone}" data-day="${dayIdx}"
+    ondragstart="onDragStart(event,'${p.id}','${zone}',${dayIdx})"
+    ondragend="onDragEnd(event)"
+    style="${isDone?'opacity:.5;':''}">
+    <span>🍅</span>
+    <div>
+      <span class="pb-name" style="${isDone?'text-decoration:line-through;':''}">${p.name}</span>
+      <span class="pb-cnt">×${p.count}(${p.count*POMO_TOTAL}分)</span>
+      ${qLink}
+    </div>
+    <div class="pomo-done-chk ${isDone?'on':''}" onclick="togglePomoDone('${doneKey}',${dayIdx})" title="完了"></div>
+    <span class="pb-del" onclick="deletePomo('${p.id}',${dayIdx})">✕</span>
+  </div>`;
+}
+
+function setDayType(d,type){S.dayTypes[d]=type;save();renderSchedBody();}
+function setWake(d,h){
+  S.wakeHours[d]=h;
+  autoDistrib(d);save();renderSchedBody();
+}
+function autoDistrib(d){
+  const dtype=S.dayTypes[d],wake=S.wakeHours[d];
+  const mm=getMorningMins(dtype,wake);
+  if(!S.pomos[d])S.pomos[d]={morning:[],evening:[]};
+  const all=[...S.pomos[d].morning,...S.pomos[d].evening];
+  if(!all.length)return;
+  let used=0;const morning=[],evening=[];
+  for(const p of all){
+    const mins=p.count*POMO_TOTAL;
+    if(used+mins<=mm){morning.push(p);used+=mins;}
+    else evening.push(p);
+  }
+  S.pomos[d]={morning,evening};
+}
+
+// ============================================================
+// ドラッグ（PC）
+// ============================================================
+function onDragStart(e,id,from,dayIdx){dragId=id;dragFrom=from;dragDayIdx=dayIdx;e.target.classList.add('dragging');}
+function onDragEnd(e){e.target.classList.remove('dragging');dragId=null;dragFrom=null;}
+function onDrop(e,to,dayIdx){
+  e.preventDefault();
+  document.querySelectorAll('.pomo-zone').forEach(z=>z.classList.remove('dragover'));
+  if(!dragId||dragFrom===to)return;
+  const d=dayIdx,src=S.pomos[d][dragFrom],dst=S.pomos[d][to];
+  const idx=src.findIndex(p=>p.id===dragId);if(idx===-1)return;
+  const[moved]=src.splice(idx,1);dst.push(moved);
+  save();renderSchedBody();playSound('ok');
+}
+
+// ============================================================
+// タッチドラッグ（スマホ対応）
+// ============================================================
+function setupDragTouch(){
+  let touchEl=null,clone=null,touchZone=null,touchFrom=null,touchDayI=null,touchId=null;
+
+  document.querySelectorAll('.pomo-block').forEach(el=>{
+    el.addEventListener('touchstart',e=>{
+      const t=e.touches[0];
+      touchEl=el;
+      touchId=el.dataset.id;
+      touchFrom=el.dataset.zone;
+      touchDayI=parseInt(el.dataset.day);
+      clone=el.cloneNode(true);
+      clone.style.cssText=`position:fixed;z-index:9999;opacity:.85;pointer-events:none;width:${el.offsetWidth}px;transform:scale(1.05);transition:none;`;
+      clone.style.left=(t.clientX-el.offsetWidth/2)+'px';
+      clone.style.top=(t.clientY-el.offsetHeight/2)+'px';
+      document.body.appendChild(clone);
+      el.classList.add('dragging');
+      e.preventDefault();
+    },{passive:false});
+
+    el.addEventListener('touchmove',e=>{
+      if(!clone)return;
+      const t=e.touches[0];
+      clone.style.left=(t.clientX-clone.offsetWidth/2)+'px';
+      clone.style.top=(t.clientY-clone.offsetHeight/2)+'px';
+      // ゾーン検出
+      const zones=document.querySelectorAll('.pomo-zone');
+      zones.forEach(z=>z.classList.remove('dragover'));
+      const elBelow=document.elementFromPoint(t.clientX,t.clientY);
+      const zone=elBelow?.closest('.pomo-zone');
+      if(zone){zone.classList.add('dragover');touchZone=zone.dataset.zone;}
+      else touchZone=null;
+      e.preventDefault();
+    },{passive:false});
+
+    el.addEventListener('touchend',e=>{
+      if(!clone)return;
+      clone.remove();clone=null;
+      touchEl.classList.remove('dragging');
+      document.querySelectorAll('.pomo-zone').forEach(z=>z.classList.remove('dragover'));
+      if(touchZone&&touchZone!==touchFrom){
+        const src=S.pomos[touchDayI][touchFrom],dst=S.pomos[touchDayI][touchZone];
+        const idx=src.findIndex(p=>p.id===touchId);
+        if(idx!==-1){const[m]=src.splice(idx,1);dst.push(m);}
+        save();renderSchedBody();playSound('ok');
+      }
+      touchEl=null;touchZone=null;touchFrom=null;touchId=null;
+    });
+  });
+}
+
+// ============================================================
+// ポモ追加
+// ============================================================
+function openPModal(){
+  // クエスト選択肢を更新
+  const sel=document.getElementById('p-quest');
+  sel.innerHTML='<option value="">-- なし --</option>'+S.quests.filter(q=>q.type!=='daily').map(q=>`<option value="${q.id}">${q.title.slice(0,30)}</option>`).join('');
+  document.getElementById('p-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('p-name').focus(),100);
+}
+function closePModal(){document.getElementById('p-modal').classList.remove('show');}
+function savePomo(){
+  const name=document.getElementById('p-name').value.trim();if(!name){alert('内容を入力してください');return;}
+  const count=parseInt(document.getElementById('p-count').value)||1;
+  const slot=document.getElementById('p-slot').value;
+  const questId=document.getElementById('p-quest').value;
+  const d=S.currentDay;
+  if(!S.pomos[d])S.pomos[d]={morning:[],evening:[]};
+  S.pomos[d][slot].push({id:'p'+Date.now(),name,count,questId});
+  save();closePModal();renderSchedBody();
+}
+function deletePomo(id,dayIdx){
+  ['morning','evening'].forEach(z=>{S.pomos[dayIdx][z]=S.pomos[dayIdx][z].filter(p=>p.id!==id);});
+  save();renderSchedBody();
+}
+
+// ============================================================
+// 週次レビュー
+// ============================================================
+function getWeekKey(offset){
+  const now=new Date();
+  const day=now.getDay();
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(day===0?6:day-1)+(offset*7));
+  return monday.toISOString().slice(0,10);
+}
+function getWeekLabel(offset){
+  const now=new Date();
+  const day=now.getDay();
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(day===0?6:day-1)+(offset*7));
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  const fmt=d=>`${d.getMonth()+1}/${d.getDate()}`;
+  return `${monday.getFullYear()} · ${fmt(monday)} 〜 ${fmt(sunday)}`;
+}
+function changeWeek(dir){S.reviewWeekOffset=(S.reviewWeekOffset||0)+dir;save();renderReview();}
+
+function renderReview(){
+  const offset=S.reviewWeekOffset||0;
+  const wk=getWeekKey(offset);
+  if(!S.reviews)S.reviews={};
+  if(!S.reviews[wk])S.reviews[wk]={good:'',bad:'',next:'',xpGained:0,questsDone:[]};
+  const rev=S.reviews[wk];
+  const isCurrentWeek=offset===0;
+
+  // 今週の達成数（日付ベース）
+  const wkStart=getWeekKey(offset);
+  const wkEnd=(()=>{const d=new Date(wkStart);d.setDate(d.getDate()+6);return d.toISOString().slice(0,10);})();
+  const wkDoneQuests=S.quests.filter(q=>typeof S.completed[q.id]==='string'&&S.completed[q.id]>=wkStart&&S.completed[q.id]<=wkEnd);
+  const totalDone=wkDoneQuests.length;
+  const totalXP=wkDoneQuests.reduce((a,q)=>a+q.xp,0);
+
+  document.getElementById('review-week-lbl').textContent=getWeekLabel(offset);
+
+  document.getElementById('review-body').innerHTML=`
+    <div class="review-stats">
+      <div class="review-stat"><div class="review-stat-n" style="color:var(--accent3)">${totalXP}</div><div class="review-stat-l">今週XP</div></div>
+      <div class="review-stat"><div class="review-stat-n" style="color:var(--success)">${totalDone}</div><div class="review-stat-l">今週達成</div></div>
+      <div class="review-stat"><div class="review-stat-n" style="color:var(--accent)">${S.streak}</div><div class="review-stat-l">連続日</div></div>
+    </div>
+
+    <div class="review-card">
+      <div class="review-card-ttl" style="color:var(--success)">✅ 今週よかったこと・できたこと</div>
+      <textarea class="review-ta" id="rv-good" placeholder="達成したこと、気づいたこと、成長を感じた瞬間..." oninput="saveReview()">${rev.good||''}</textarea>
+    </div>
+    <div class="review-card">
+      <div class="review-card-ttl" style="color:var(--danger)">⚠️ 課題・うまくいかなかったこと</div>
+      <textarea class="review-ta" id="rv-bad" placeholder="詰まったこと、できなかったこと、障害になったもの..." oninput="saveReview()">${rev.bad||''}</textarea>
+    </div>
+    <div class="review-card">
+      <div class="review-card-ttl" style="color:var(--accent)">🚀 来週のアクション</div>
+      <textarea class="review-ta" id="rv-next" placeholder="来週具体的に何をやるか。クエスト名や時間まで書くと◎" oninput="saveReview()">${rev.next||''}</textarea>
+    </div>
+    <div class="review-card">
+      <div class="review-card-ttl" style="color:var(--muted)">📋 クエスト進捗状況</div>
+      <div class="review-quest-list">
+        ${S.quests.filter(q=>q.type!=='daily').map(q=>`
+          <div class="review-quest-item">
+            <div class="rq-dot ${S.completed[q.id]?'done':'todo'}"></div>
+            <span style="flex:1;color:${S.completed[q.id]?'var(--success)':'var(--text)'};text-decoration:${S.completed[q.id]?'line-through':''};font-size:12px;">${q.title}</span>
+            <span style="font-size:10px;color:var(--muted)">${S.completed[q.id]?S.completed[q.id]:(q.badge||'')}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function saveReview(){
+  const offset=S.reviewWeekOffset||0;
+  const wk=getWeekKey(offset);
+  if(!S.reviews)S.reviews={};
+  if(!S.reviews[wk])S.reviews[wk]={good:'',bad:'',next:''};
+  S.reviews[wk].good=document.getElementById('rv-good')?.value||'';
+  S.reviews[wk].bad=document.getElementById('rv-bad')?.value||'';
+  S.reviews[wk].next=document.getElementById('rv-next')?.value||'';
+  save();
+}
+
+// ============================================================
+// エフェクト
+// ============================================================
+function spawnP(el){
+  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const cols=['#00d4ff','#7c3aed','#f59e0b','#10b981','#fff'];
+  const b=document.createElement('div');b.className='burst';b.style.cssText=`left:${cx}px;top:${cy}px;`;
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div');p.className='particle';
+    const a=(i/16)*Math.PI*2,dist=40+Math.random()*60;
+    p.style.cssText=`background:${cols[Math.floor(Math.random()*cols.length)]};--dx:${Math.cos(a)*dist}px;--dy:${Math.sin(a)*dist}px;left:-3px;top:-3px;animation-delay:${Math.random()*.1}s;`;
+    b.appendChild(p);
+  }
+  document.body.appendChild(b);setTimeout(()=>b.remove(),1000);
+}
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes=type==='lv'?[523,659,784,1047,1319,1047,1319]:type==='ok'?[523,659,784,1047]:[440,523];
+    notes.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type=type==='lv'?'square':'sine';
+      const t=ctx.currentTime+i*(type==='lv'?.1:.08);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(type==='lv'?.08:.15,t+.02);
+      g.gain.exponentialRampToValueAtTime(.001,t+(type==='lv'?.25:.3));
+      o.start(t);o.stop(t+(type==='lv'?.25:.3));
+    });
+  }catch(e){}
+}
+function showLV(lvl){
+  const b=document.getElementById('lv-banner');
+  document.getElementById('lv-txt').textContent=`LEVEL ${lvl} !`;
+  document.getElementById('lv-sub').textContent=`「${LV_NAMES[Math.min(lvl-1,LV_NAMES.length-1)]||'伝説の傭兵'}」に昇格！`;
+  b.classList.add('show');setTimeout(()=>b.classList.remove('show'),2500);
+}
+
+// ============================================================
+// キーボード
+// ============================================================
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeQModal();closePModal();document.getElementById('drawer').classList.remove('show');}
+  if(e.key==='Enter'&&!e.shiftKey){
+    if(document.getElementById('q-modal').classList.contains('show'))saveQuest();
+    if(document.getElementById('p-modal').classList.contains('show'))savePomo();
+  }
+});
+document.getElementById('q-modal').addEventListener('click',function(e){if(e.target===this)closeQModal();});
+document.getElementById('p-modal').addEventListener('click',function(e){if(e.target===this)closePModal();});
+document.getElementById('sub-input').addEventListener('keydown',e=>{if(e.key==='Enter')addSub();});
+
+// ============================================================
+// マイグレーション：completed の true → 日付文字列
+// ============================================================
+(function migrate(){
+  let changed=false;
+  const fallback=S.lastDate
+    ? new Date(S.lastDate).toISOString().slice(0,10)
+    : new Date().toISOString().slice(0,10);
+  Object.keys(S.completed).forEach(id=>{
+    if(S.completed[id]===true){
+      S.completed[id]=fallback;
+      changed=true;
+    }
+  });
+  if(changed)save();
+})();
+
+// ============================================================
+// 起動
+// ============================================================
+showSec(S.currentSection);
+renderAll();
+</script>
+</body>
+</html>
